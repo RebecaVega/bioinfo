@@ -1,0 +1,161 @@
+---
+title: "Tarea 2"
+author: "Rebeca Vega Escamilla"
+date: "16/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+1. Considera las siguientes cantidades discute y justifica qué tipo de distribución
+de probabilidad pueden tener las siguientes variables:
+
+a. El número (talla) de calzado de adultos varones en México: ***gaussiana*** porque si los graficamos, va a haber un promedio con un pico y seguramente habrá muy pocos que tengan una talla muy diferente a los demás
+
+b. La distribución de habitantes en asentamientos humanos de México: ***De cola larga*** pues son muy variadas, hay zonas con mucha más gente y zona con  mucha menos gente
+
+c. La velocidad promedio de los automóviles en Bernardo Quintana a las 9 de la
+mañana en un día laborable: ***poisson***, porque expresa un evento que tiene un frecuencia durante un periodo de tiempo pero sería algo variablem por la hora 
+
+d. La velocidad promedio de los automóviles en Bernardo Quintana a las 3 de la
+mañana: ***De cola larga*** porque puede ser muy variable ya que no es una hora muy transcurrida y pueden variar mucho las velocidades. 
+
+2. Supongamos que tenemos dos nodos (A,B) en una red. El nodo A y B tiene el
+mismo degree, pero el A tiene un coeficiente de clusterización de 1 y el nodo B un
+coeficiente bajo.Dibuja está situación y explica cuál sería una mejor diana si quieres
+eliminarlos y afectar a la red.
+
+<center>![Red](/Users/perse/Downloads/red.JPEG )</center>
+Así se vería mi red, que si quisiera dibujarla a a través de R, lo haría de la siguiente manera:
+
+```{r}
+library(igraph)
+t<- make_empty_graph(n=10, directed= FALSE)#hago mi red y le pongo False porque no quiero las flechitas
+V(t)$name = c("A","B","C","D","E","F","G","H","I","J") #le pongo letritas a los nodos
+V(t)$size = 20  #elijo un tamaño para los nodos
+V(t)$color = "purple"#elijo un color moradito 
+V(t)$shape = "sphere"#y defino que figura quiero para los nodos
+
+t<- add.edges(t, c(1,2, 1,3, 1,4, 1,8, 1,10, 2,5, 2,6, 2,7, 2,9, 4,10, 8,10,  3,10, 3,4, 3,8, 4,8))# defino cómo quiero que queden mis conexiones
+plot(t) # imprimo mi gráfico
+```
+
+
+
+
+
+Ahora, si quiero afectar mi red, mi diana sería el nodo _A_ pues aunque tenga el mismo degree su coeficiente de clusterización es alto y eso significa que si lo elimino, cambiaría por completo debido a que está muy _interconectada _
+
+
+3. Elabora un programa en R que usando funciones calcule, a partir de una matriz
+de adyacencia (Sólo utiliza R base para resolver este problema)
+```{r}
+tres<-matrix(c(1,1,1,0,0,1,0,1,0,1,1,0,0,1,0,1,0,0,1,1), nrow = 5, ncol = 5)
+tres #Hago nmi matriz de adyacencia 
+```
+
+
+a. Si la red es dirigida o no.
+b. Si la red es pesada o no.
+c. El degree de los nodos.
+```{r}
+mn<-mean(tres)
+```
+d. El histograma del degree.
+```{r}
+hist(mn)
+```
+
+4.  A partir de la red de interacción de proteínas alojada en la librería igraphdata,
+que puedes llamar mediante data(yeast) elabora un programa en R (acá sí puedes
+usar librerías especializadas de R) que
+```{r}
+library(igraph)
+library(igraphdata)# Cargo las librerías que voy a necesitar
+data("yeast") # Así le indico que voy a usar yeast que justo es para la trabajar con interacción de proteínas
+
+```
+
+a. Calcule la distribución de conectividades y grafique esa distribución . Discute
+tu resultado.
+```{r}
+ptn<- degree(yeast, mode = "all")
+hist(ptn)
+#Creo que hay dos formas de hacerlos sólo que no sé bien la diferencia
+hist(degree(yeast,mode="all"),col = "yellow")
+```
+
+b. Grafique el boxplot de la distribución de conectividades y discute tu resultado.
+```{r}
+boxplot(ptn)
+```
+
+c. Encuentre la proporción de nodos que tienen 15 o más conectividades.
+
+Lo que sé aquí es que el coeficiente de agrupamiento para un vértice está dado por la proporción entre los enlaces conectados con sus vecinos dividido entre el número de enlaces existentes en una clica en el que la conectividad es máxima. Esto podría ser clave para poder encontrar la proporción pero no sé como :(
+
+d. Calcule el degree máximo de la red.
+```{r}
+ptna<- degree(yeast)
+ptna
+```
+
+e. Calcule el diámetro
+```{r}
+diam<- diameter(yeast)
+diam
+```
+
+f. La trayectoria más larga.
+```{r}
+distance_table(yeast) # con distance encuentro la trayectoria
+```
+
+g. Elimine los 10 nodos más conectados de la red y determine el diámetro cada
+vez que lo haga.
+```{r}
+elim <- degree(yeast, mode = "all")
+no2<-sort(elim, decreasing = T)[1:10] # Con este le piso que en orden me busque los 10 más conectados 
+# pensé que con delete.edges podía borrarlo pero no me sale
+
+```
+
+h. Determine los diez nodos más importantes por al menos tres medidas de
+centralidad.
+```{r}
+bt<-centralization.betweenness(yeast) 
+clns<-centralization.closeness(yeast)
+
+
+```
+
+i. Clusterizar la red por al menos dos métodos y determinar el tamaño del
+clúster más grande.
+```{r}
+clstr1<-cluster_infomap(yeast)
+membership(clstr1)
+
+# kmeans (yeast)# No sé cómo se usa jaja 
+
+clstr2<-cluster_leading_eigen(yeast)
+membership(clstr2)
+library(compare)
+compare(clstr2, clstr1) # traté de hacerlo así pero evidentemente no iba a salir porque sólo los compara y me arroja FALSE en todo, cosa que quiere decir que no son iguales y ya pero no me dice quien es mas grande 
+
+```
+
+j. Determine si la red es de mundo pequeño, ultra pequeño u otra.
+```{r}
+mean_distance(yeast) #primero saco la distancia y luego el coeficiente de clusterizacion con transitivity
+transitivity(yeast)
+
+```
+La red es de mundo pequeño, me guié con esta imagen, donde La probabilidad de conectar un nodo con otro cualquiera es p. Para un grafo con p = 0 se puede ver que la conectividad es la misma y de
+valor 2k y su C(0) ⇠ 3/4. Por otro lado, un valor no nulo de p introduce desorden en la red de tal forma que la conectividad no es uniforme, manteniendo
+todavía de media un valor de 2k. Esta construcción nos permite sintonizar
+el gráfico entre la regularidad (p = 0) y el desorden (p = 1), y por lo tanto
+sondear la región intermedia 0 <p< 1, sobre la cual poco se sabe
+<center>![Red](/Users/perse/Downloads/smallworld.PNG )</center>
